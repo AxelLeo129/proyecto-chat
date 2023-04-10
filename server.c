@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#define MAX_CLIENTS 2
+#define MAX_CLIENTS 5
 #define BUFFER_SZ 2048
 
 static _Atomic unsigned int cli_count = 0;
@@ -149,10 +149,10 @@ void *handle_client(void *arg){
 
   /* Delete client from queue and yield thread */
 	close(cli->sockfd);
-  queue_remove(cli->uid);
-  free(cli);
-  cli_count--;
-  pthread_detach(pthread_self());
+	queue_remove(cli->uid);
+	free(cli);
+	cli_count--;
+	pthread_detach(pthread_self());
 
 	return NULL;
 }
@@ -178,12 +178,12 @@ int main(int argc, char **argv){
 	serv_addr.sin_port = htons(port);
 
 	/* Ignore pipe signals */
-		signal(SIGPIPE, SIG_IGN);
+	signal(SIGPIPE, SIG_IGN);
 
-		if(setsockopt(listenfd, SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),(char*)&option,sizeof(option)) < 0){
-			perror("ERROR: setsockopt failed");
-		return EXIT_FAILURE;
-		}
+	if(setsockopt(listenfd, SOL_SOCKET,(SO_REUSEPORT | SO_REUSEADDR),(char*)&option,sizeof(option)) < 0){
+		perror("ERROR: setsockopt failed");
+	return EXIT_FAILURE;
+	}
 
 		/* Bind */
 	if(bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
