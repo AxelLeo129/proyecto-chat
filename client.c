@@ -73,13 +73,15 @@ void recv_msg_handler() {
 	}
 }
 
+
+
 int main(int argc, char **argv){
 	if(argc != 4){
 		printf("Uso correcto: ./client Nombre <ip> <puerto>\n");
 		return EXIT_FAILURE;
 	}
 
-	char *name = argv[1];
+	snprintf(name, sizeof(name), "%s", argv[1]);
 	char *ip = argv[2];
 	int port = atoi(argv[3]);
 

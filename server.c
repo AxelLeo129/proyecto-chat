@@ -156,6 +156,16 @@ void *handle_client(void *arg){
 
 	return NULL;
 }
+/**
+void print_clients(client_t *clients, int num_clients){
+	printf("Clientes conectados:");
+	for (int i = 0; i < num_clients; i++){
+		char address_str[INET_ADDRSTRLEN];
+		inet_ntop(AF_INET, &(clients[i].address.sin_addr), address_str, INET_ADDRSTRLEN);
+		printf("[%d] %s:%d\n", clients[i].uid, address_str, ntohs(clients[i].address.sin_port));
+	}
+}
+**/
 
 int main(int argc, char **argv){
 	if(argc != 2){
@@ -221,7 +231,7 @@ int main(int argc, char **argv){
 		/* Add client to the queue and fork thread */
 		queue_add(cli);
 		pthread_create(&tid, NULL, &handle_client, (void*)cli);
-
+		
 		/* Reduce CPU usage */
 		sleep(1);
 	}
