@@ -24,6 +24,66 @@ typedef struct{
 	char name[32];
 } client_t;
 
+/**	MESSAGE STRUCT **/
+
+typedef struct{
+	int message_type;
+	char sender[32];
+	char recipient[32];
+	char message[100];
+} newMessage;
+
+/**	USER STRUCTS **/
+
+typedef struct{
+	char username[32];
+	char ip[100];
+} UserRegister;
+
+typedef struct{
+	int type_request;
+	char user[100];
+} UserInfoRequest;
+
+typedef struct{
+	char username[32];
+	int newStatus;
+} ChangeStatus;
+
+/**	USER REQUEST **/
+
+typedef struct{
+	int option;
+	UserRegister newUser;
+	UserInfoRequest infoRequest;
+	ChangeStatus status;
+	newMessage message;
+} UserRequest;
+
+/**	SERVER STRUCTS **/
+
+typedef struct{
+	char username[32];
+	char ip[100];
+	int status;
+} UserInfo;
+
+typedef struct{
+	UserInfo connectedUsers;
+} AllConnectedUsers;
+
+
+/**	SERVER RESPONSE **/
+typedef struct{
+	int option;
+	int code;
+	char serverMesssage[32];
+	AllConnectedUsers connectedUsers;
+	newMessage message;
+	UserInfo userInfoResponse;
+	ChangeStatus change;
+} ServerResponse;
+
 client_t *clients[MAX_CLIENTS];
 
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -156,6 +216,7 @@ void *handle_client(void *arg){
 
 	return NULL;
 }
+
 /**
 void print_clients(client_t *clients, int num_clients){
 	printf("Clientes conectados:");
