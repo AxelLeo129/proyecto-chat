@@ -59,6 +59,7 @@ void* prueba(char* message){
     return 0;
 }
 
+
 void* send_msg_handler(void* arg){
 	
 //Variable Menú
@@ -101,9 +102,23 @@ void* send_msg_handler(void* arg){
 					newMessage1->set_message_type(1);
 					newMessage1->set_sender(name);
 					newMessage1->set_message(message);
-					// Imprimir el contenido de userRequest
-					//std::cout << "Contenido de userRequest: " << userRequest.DebugString() << std::endl;
 
+
+					/***************************************************Validacion mensaje directo**************************************/
+					char *pos = strchr(message, '>'); 
+					if (pos != NULL) {
+						int len = pos - message - 1; 
+						char rec[len+1]; 
+						strncpy(rec, message + 1, len); 
+						rec[len] = '\0'; 
+						char *msg = pos + 2; 
+						newMessage1->set_recipient(rec);
+						newMessage1->set_message(msg);
+					}
+					//std::cout << "Contenido de userRequest: " << userRequest.DebugString() << std::endl;
+    
+					/******************************************************************************************************************/
+					
 					std::string serialized_request;
 					userRequest.SerializeToString(&serialized_request);
 					// Preparar los datos para ser enviados
@@ -183,7 +198,7 @@ int main(int argc, char **argv){
 	newUser1->set_ip(inet_ntoa(cliaddr.sin_addr));
 
 	// Imprimir el contenido de userRequest
-	std::cout << "Contenido de userRequestReg: " << userRequestReg.DebugString() << std::endl;
+	//std::cout << "Contenido de userRequestReg: " << userRequestReg.DebugString() << std::endl;
 
 	std::string serialized_request;
 	userRequestReg.SerializeToString(&serialized_request);
