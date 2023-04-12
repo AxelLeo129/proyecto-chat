@@ -59,40 +59,6 @@ void* prueba(char* message){
     return 0;
 }
 
-
-
-/**
-
-void* send_msg_handler(void* arg){
-	char message[LENGTH] = {};
-	char buffer[LENGTH + 32] = {};
-
-	while(1) {
-		str_overwrite_stdout();
-		fgets(message, LENGTH, stdin);
-		str_trim_lf(message, LENGTH);
-
-		if (strcmp(message, "exit") == 0) {
-				break;
-		} else {
-		sprintf(buffer, "%s: %s\n", name, message);
-		send(sockfd, buffer, strlen(buffer), 0);
-		}
-		prueba(message);
-		bzero(message, LENGTH);
-		bzero(buffer, LENGTH + 32);
-	}
-	catch_ctrl_c_and_exit(2);
-}
-**/
-
-typedef struct{
-	int message_type;
-	char sender[32];
-	char recipient[32];
-	char message[100];	
-} mensa;
-
 void* send_msg_handler(void* arg){
 	
 //Variable Menú
@@ -210,7 +176,22 @@ int main(int argc, char **argv){
 	}
 
 	// Send name
-	send(sockfd, name, 32, 0);
+	chat::UserRequest userRequestReg;
+	userRequestReg.set_option(1);
+	chat::UserRegister* newUser1 = userRequestReg.mutable_newuser();
+	newUser1->set_username(name);
+	newUser1->set_ip(ip);
+
+	// Imprimir el contenido de userRequest
+	std::cout << "Contenido de userRequestReg: " << userRequestReg.DebugString() << std::endl;
+
+	std::string serialized_request;
+	userRequestReg.SerializeToString(&serialized_request);
+	// Preparar los datos para ser enviados
+	const char* data = serialized_request.c_str();
+	size_t data_len = serialized_request.length();
+
+	send(sockfd, data, data_len, 0);
 
 	pthread_t send_msg_thread;
 	if(pthread_create(&send_msg_thread, NULL, send_msg_handler, NULL) != 0){

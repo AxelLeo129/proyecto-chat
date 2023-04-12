@@ -26,6 +26,7 @@ typedef struct
 	int sockfd;
 	int uid;
 	char name[32];
+	char ip[32];
 } client_t;
 
 client_t *clients[MAX_CLIENTS];
@@ -132,13 +133,6 @@ void send_message(char *s, int uid)
 	pthread_mutex_unlock(&clients_mutex);
 }
 
-typedef struct{
-	int message_type;
-	char sender[32];
-	char recipient[32];
-	char message[100];	
-} mensa;
-
 /* Handle all communication with the client */
 void *handle_client(void *arg)
 {
@@ -148,21 +142,25 @@ void *handle_client(void *arg)
 
 	cli_count++;
 	client_t *cli = (client_t *)arg;
-
+	
 	// Name
-	if (recv(cli->sockfd, name, 32, 0) <= 0 || strlen(name) < 2 || strlen(name) >= 32 - 1)
-	{
-		printf("No ingresó el nombre.\n");
-		leave_flag = 1;
-	}
-	else
-	{
-		strcpy(cli->name, name);
-		sprintf(buff_out, "%s se ha conectado\n", cli->name);
-		printf("%s", buff_out);
-		send_message(buff_out, cli->uid);
-		print_client_names();
-	}
+	int receivefirst = recv(cli->sockfd, buff_out, BUFFER_SZ, 0);
+	std::string received_data(buff_out, receivefirst);
+	chat::UserRequest received_request;
+	received_request.ParseFromString(received_data);
+	
+	chat::UserRegister received_newUser = received_request.newuser();
+	std::string received_username = received_newUser.username();
+	std::string received_ip = received_newUser.ip();
+
+	strcpy(cli->name, received_username.c_str());
+	strcpy(cli->ip, received_ip);
+	sprintf(buff_out, "%s se ha conectado\n", cli->name);
+	printf("%s", buff_out);
+	send_message(buff_out, cli->uid);
+	queue_add(cli);
+	print_client_names();
+	
 
 	bzero(buff_out, BUFFER_SZ);
 
@@ -288,7 +286,7 @@ int main(int argc, char **argv)
 		cli->uid = uid++;
 
 		/* Add client to the queue and fork thread */
-		queue_add(cli);
+
 		pthread_create(&tid, NULL, &handle_client, (void *)cli);
 
 		/* Reduce CPU usage */
