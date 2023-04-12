@@ -135,6 +135,30 @@ void send_message(char *s, int uid)
 	pthread_mutex_unlock(&clients_mutex);
 }
 
+/* Send message to the client that was setted */
+void send_direct_message(char *s, std::string rec)
+{
+	pthread_mutex_lock(&clients_mutex);
+
+	for (int i = 0; i < MAX_CLIENTS; ++i)
+	{
+		if (clients[i])
+		{
+			if (rec.compare(clients[i]->name) == 0) 
+    // Los strings son iguales
+			{
+				if (write(clients[i]->sockfd, s, strlen(s)) < 0)
+				{
+					perror("ERROR: write to descriptor failed");
+					break;
+				}
+			}
+		}
+	}
+
+	pthread_mutex_unlock(&clients_mutex);
+}
+
 /* Handle all communication with the client */
 void *handle_client(void *arg)
 {
@@ -161,9 +185,7 @@ void *handle_client(void *arg)
 	printf("%s", buff_out);
 	send_message(buff_out, cli->uid);
 	queue_add(cli);
-	print_client_names();
 	
-
 	bzero(buff_out, BUFFER_SZ);
 
 	while (1)
@@ -180,19 +202,26 @@ void *handle_client(void *arg)
 				chat::UserRequest received_request;
 				received_request.ParseFromString(received_data);
 				//std::cout << "Contenido de received_request: " << received_request.DebugString() << std::endl;
-				
+
 				if(received_request.option() == 4) {
 					chat::newMessage received_message = received_request.message();
 					std::string received_sender = received_message.sender();
 					std::string received_message_text = received_message.message();
-					std::string result = received_sender + ": " + received_message_text + "\n";
+					std::string received_recipient = received_message.recipient();
 
-					std::string message1(received_message_text);
-					//send_message((char*)message1.c_str(), cli->uid);
-					send_message(const_cast<char*>(result.c_str()), cli->uid);
-
-					str_trim_lf((char*)message1.c_str(), strlen(message1.c_str()));
-					printf("%s -> %s\n", message1.c_str(), cli->name);
+					if (received_recipient.empty()) {
+						std::string result = received_sender + ": " + received_message_text + "\n";
+						send_message(const_cast<char*>(result.c_str()), cli->uid);
+						std::string message1(received_message_text);
+						str_trim_lf((char*)message1.c_str(), strlen(message1.c_str()));
+						printf("%s -> %s\n", message1.c_str(), cli->name);
+					}else{
+						std::string result = "[DM]" + received_sender + ": " + received_message_text + "\n";
+						send_direct_message(const_cast<char*>(result.c_str()), received_recipient);
+						std::string message1(received_message_text);
+						str_trim_lf((char*)message1.c_str(), strlen(message1.c_str()));
+						printf("%s -> [DM]%s to %s\n", message1.c_str(), cli->name, received_recipient.c_str());
+					}
 				} else if(received_request.option() == 3) {
 					printf("Cambio de estado.\n");
 					chat::ChangeStatus received_status = received_request.status();
