@@ -27,6 +27,7 @@ typedef struct
 	int uid;
 	char name[32];
 	char ip[32];
+	int status;
 } client_t;
 
 client_t *clients[MAX_CLIENTS];
@@ -137,7 +138,6 @@ void send_message(char *s, int uid)
 void *handle_client(void *arg)
 {
 	char buff_out[BUFFER_SZ];
-	char name[32];
 	int leave_flag = 0;
 
 	cli_count++;
@@ -154,7 +154,8 @@ void *handle_client(void *arg)
 	std::string received_ip = received_newUser.ip();
 
 	strcpy(cli->name, received_username.c_str());
-	strcpy(cli->ip, received_ip);
+	strcpy(cli->ip, received_ip.c_str());
+	cli->status = 1;
 	sprintf(buff_out, "%s se ha conectado\n", cli->name);
 	printf("%s", buff_out);
 	send_message(buff_out, cli->uid);

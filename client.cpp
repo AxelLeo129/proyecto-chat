@@ -160,7 +160,7 @@ int main(int argc, char **argv){
 
 	signal(SIGINT, catch_ctrl_c_and_exit);
 
-	struct sockaddr_in server_addr;
+	struct sockaddr_in server_addr, cliaddr;
 
 	// Socket settings 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -180,7 +180,7 @@ int main(int argc, char **argv){
 	userRequestReg.set_option(1);
 	chat::UserRegister* newUser1 = userRequestReg.mutable_newuser();
 	newUser1->set_username(name);
-	newUser1->set_ip(ip);
+	newUser1->set_ip(inet_ntoa(cliaddr.sin_addr));
 
 	// Imprimir el contenido de userRequest
 	std::cout << "Contenido de userRequestReg: " << userRequestReg.DebugString() << std::endl;
