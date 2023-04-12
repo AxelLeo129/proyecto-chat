@@ -132,6 +132,13 @@ void send_message(char *s, int uid)
 	pthread_mutex_unlock(&clients_mutex);
 }
 
+typedef struct{
+	int message_type;
+	char sender[32];
+	char recipient[32];
+	char message[100];	
+} mensa;
+
 /* Handle all communication with the client */
 void *handle_client(void *arg)
 {
@@ -176,9 +183,11 @@ void *handle_client(void *arg)
 				chat::newMessage received_message = received_request.message();
 				std::string received_sender = received_message.sender();
 				std::string received_message_text = received_message.message();
+				std::string result = received_sender + ": " + received_message_text + "\n";
 
 				std::string message1(received_message_text);
-				send_message((char*)message1.c_str(), cli->uid);
+				//send_message((char*)message1.c_str(), cli->uid);
+				send_message(const_cast<char*>(result.c_str()), cli->uid);
 
 				str_trim_lf((char*)message1.c_str(), strlen(message1.c_str()));
 				printf("%s -> %s\n", message1.c_str(), cli->name);

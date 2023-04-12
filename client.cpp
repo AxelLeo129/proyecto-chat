@@ -86,6 +86,12 @@ void* send_msg_handler(void* arg){
 }
 **/
 
+typedef struct{
+	int message_type;
+	char sender[32];
+	char recipient[32];
+	char message[100];	
+} mensa;
 
 void* send_msg_handler(void* arg){
 	
@@ -124,17 +130,16 @@ void* send_msg_handler(void* arg){
 				} else {
 					sprintf(buffer, "%s: %s\n", name, message);
 					chat::UserRequest userRequest;
-					chat::newMessage newMessage1;
-
-					newMessage1.set_message_type(1);
-					newMessage1.set_sender(name);
-					newMessage1.set_message(message);
 					userRequest.set_option(4);
-					userRequest.set_allocated_message(newMessage1);
+					chat::newMessage* newMessage1 = userRequest.mutable_message();
+					newMessage1->set_message_type(1);
+					newMessage1->set_sender(name);
+					newMessage1->set_message(message);
+					// Imprimir el contenido de userRequest
+					//std::cout << "Contenido de userRequest: " << userRequest.DebugString() << std::endl;
 
 					std::string serialized_request;
 					userRequest.SerializeToString(&serialized_request);
-
 					// Preparar los datos para ser enviados
 					const char* data = serialized_request.c_str();
 					size_t data_len = serialized_request.length();
