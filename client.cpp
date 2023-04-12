@@ -150,9 +150,47 @@ void* send_msg_handler(void* arg){
 			send(sockfd, data, data_len, 0);
 
 		} else if(option == 3) {
+			printf("=== Listado de usuario: ===\n");
 			
+			chat::UserRequest userRequest;
+			userRequest.set_option(2);
+			chat::UserInfoRequest* userInfoRequest = userRequest.mutable_inforequest();
+			userInfoRequest->set_type_request(1);
+			// Imprimir el contenido de userRequest
+			//std::cout << "Contenido de userRequestList: " << userRequest.DebugString() << std::endl;
+
+			std::string serialized_request;
+			userRequest.SerializeToString(&serialized_request);
+			// Preparar los datos para ser enviados
+			const char* data = serialized_request.c_str();
+			size_t data_len = serialized_request.length();
+
+			send(sockfd, data, data_len, 0);
 		} else if(option == 4) {
-			printf("Funciona");
+			std::string message = "";
+			char buffer[256];
+
+			printf("=== Detalle usuario ===\nIngrese el usuario: ");
+			fgets(buffer, 256, stdin);
+			str_trim_lf(buffer, 256);
+			
+			message = buffer;
+
+			chat::UserRequest userRequest;
+			userRequest.set_option(2);
+			chat::UserInfoRequest* userInfoRequest = userRequest.mutable_inforequest();
+			userInfoRequest->set_type_request(0);
+			userInfoRequest->set_user(message);
+			// Imprimir el contenido de userRequest
+			std::cout << "Contenido de userRequestGet: " << userRequest.DebugString() << std::endl;
+
+			std::string serialized_request;
+			userRequest.SerializeToString(&serialized_request);
+			// Preparar los datos para ser enviados
+			const char* data = serialized_request.c_str();
+			size_t data_len = serialized_request.length();
+
+			send(sockfd, data, data_len, 0);
 		} else if(option == 5) {
 			printf("Ayuda del sistema.");
 		} else if(option == 6) {

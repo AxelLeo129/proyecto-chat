@@ -205,6 +205,23 @@ void *handle_client(void *arg)
 						}
 					}
 					print_client_names();
+				} else if(received_request.option() == 2) {
+					chat::UserInfoRequest received_userInfo = received_request.inforequest();
+					int received_type_request = received_userInfo.type_request();
+					if(received_type_request == 1) {
+						printf("Listado de usuarios.\n");
+						print_client_names();
+					} else {
+						printf("Usuario en específico.\n");
+						std::string received_user = received_userInfo.user();
+						for(int i = 0; i < MAX_CLIENTS; i++) {
+							if(clients[i] != NULL && strcmp(clients[i]->name, received_user.c_str()) == 0) {
+								printf("- %s\n", clients[i]->name);
+								printf("- %d\n", clients[i]->status);
+								break;
+							}
+						}
+					}
 				}
 			}
 		}
