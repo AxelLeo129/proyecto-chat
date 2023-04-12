@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,8 +27,8 @@ void str_trim_lf (char* arr, int length) {
 	int i;
 	for (i = 0; i < length; i++) { // trim \n
 		if (arr[i] == '\n') {
-		arr[i] = '\0';
-		break;
+			arr[i] = '\0';
+			break;
 		}
 	}
 }
@@ -35,6 +36,55 @@ void str_trim_lf (char* arr, int length) {
 void catch_ctrl_c_and_exit(int sig) {
     flag = 1;
 }
+
+void* prueba(char* message){
+    char recipient_name[LENGTH];
+    size_t start, end;
+
+    // Buscamos el primer '<' y el primer '>'
+    start = strcspn(message, "<") + 1;
+    end = strcspn(message + start, ">");
+
+    // Si encontramos ambos caracteres, extraemos el nombre
+    if (start != 0 && end != 0) {
+        strncpy(recipient_name, message + start, end);
+        recipient_name[end] = '\0';
+    }
+
+    // Imprimimos el resultado
+    printf("Nombre del destinatario: %s\n", recipient_name);
+    printf("Mensaje: %s\n", message + start + end + 2);
+
+    return 0;
+}
+
+
+
+/**
+
+void* send_msg_handler(void* arg){
+	char message[LENGTH] = {};
+	char buffer[LENGTH + 32] = {};
+
+	while(1) {
+		str_overwrite_stdout();
+		fgets(message, LENGTH, stdin);
+		str_trim_lf(message, LENGTH);
+
+		if (strcmp(message, "exit") == 0) {
+				break;
+		} else {
+		sprintf(buffer, "%s: %s\n", name, message);
+		send(sockfd, buffer, strlen(buffer), 0);
+		}
+		prueba(message);
+		bzero(message, LENGTH);
+		bzero(buffer, LENGTH + 32);
+	}
+	catch_ctrl_c_and_exit(2);
+}
+**/
+
 
 void* send_msg_handler(void* arg){
 	char message[LENGTH] = {};
@@ -74,7 +124,6 @@ void* recv_msg_handler(void* arg){
 	}
 }
 
-
 int main(int argc, char **argv){
 	if(argc != 4){
 		printf("Uso correcto: ./client Nombre <ip> <puerto>\n");
@@ -89,7 +138,7 @@ int main(int argc, char **argv){
 
 	struct sockaddr_in server_addr;
 
-	/* Socket settings */
+	// Socket settings 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = inet_addr(ip);
