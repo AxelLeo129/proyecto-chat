@@ -26,8 +26,8 @@ void str_trim_lf (char* arr, int length) {
 	int i;
 	for (i = 0; i < length; i++) { // trim \n
 		if (arr[i] == '\n') {
-		arr[i] = '\0';
-		break;
+			arr[i] = '\0';
+			break;
 		}
 	}
 }
@@ -37,25 +37,61 @@ void catch_ctrl_c_and_exit(int sig) {
 }
 
 void* send_msg_handler(void* arg){
-	char message[LENGTH] = {};
-	char buffer[LENGTH + 32] = {};
+	
+//Variable Menú
+	int option = 0;
+	char optionBuffer[10];
 
-	while(1) {
-		str_overwrite_stdout();
-		fgets(message, LENGTH, stdin);
-		str_trim_lf(message, LENGTH);
+	printf("=== Bienvenidos al Proyecto Chat ===\n");
 
-		if (strcmp(message, "exit") == 0) {
-				break;
-		} else {
-		sprintf(buffer, "%s: %s\n", name, message);
-		send(sockfd, buffer, strlen(buffer), 0);
+	while(option != 6) {
+		int validOption = 0;
+		while(validOption == 0) {
+			printf("1. Chat.\n2. Cambiar de status.\n3. Listar los usuarios conectados al sistema de chat.\n4. Desplegar información de un usuario en particular.\n5. Ayuda.\n6. Salir.\nElige una opción: ");
+			fgets(optionBuffer, 10, stdin);
+			option = atoi(optionBuffer);
+			if(option < 7 && option > 0) {
+				validOption = 1;
+			} else {
+				printf("Opcion no válida");
+			}
 		}
 
-		bzero(message, LENGTH);
-		bzero(buffer, LENGTH + 32);
+		if(option == 1) {
+			printf("=== Bienvenidos al Chat ===\n");
+			while(1) {
+
+				char message[LENGTH] = {};
+				char buffer[LENGTH + 32] = {};
+
+				str_overwrite_stdout();
+				fgets(message, LENGTH, stdin);
+				str_trim_lf(message, LENGTH);
+
+				if (strcmp(message, "exit") == 0) {
+					break;
+				} else {
+					sprintf(buffer, "%s: %s\n", name, message);
+					send(sockfd, buffer, strlen(buffer), 0);
+				}
+
+				bzero(message, LENGTH);
+				bzero(buffer, LENGTH + 32);
+			}
+			catch_ctrl_c_and_exit(2);
+		} else if(option == 2) {
+			printf("Cambiar de status\n");	 
+		} else if(option == 3) {
+			
+		} else if(option == 4) {
+			printf("Funciona");
+		} else if(option == 5) {
+			printf("Ayuda del sistema.");
+		} else if(option == 6) {
+			printf("\nGracias por usar nuestro chat.\n");
+			//exit(0);
+		}
 	}
-	catch_ctrl_c_and_exit(2);
 }
 
 void* recv_msg_handler(void* arg){
@@ -81,85 +117,49 @@ int main(int argc, char **argv){
 		return EXIT_FAILURE;
 	}
 
-	//Variable Menú
-	int option = 0;
-	char optionBuffer[10];
+	snprintf(name, sizeof(name), "%s", argv[1]);
+	char *ip = argv[2];
+	int port = atoi(argv[3]);
 
-	printf("=== Bienvenidos al Proyecto Chat ===\n");
+	signal(SIGINT, catch_ctrl_c_and_exit);
 
-	while(option != 6) {
-		int validOption = 0;
-		while(validOption == 0) {
-			printf("1. Chat.\n2. Cambiar de status.\n3. Listar los usuarios conectados al sistema de chat.\n4. Desplegar información de un usuario en particular.\n5. Ayuda.\n6. Salir.\nElige una opción: ");
-			fgets(optionBuffer, 10, stdin);
-    		option = atoi(optionBuffer);
-			if(option < 7 && option > 0) {
-				validOption = 1;
-			} else {
-				printf("Opcion no válida");
-			}
-		}
-		if(option == 1) {
-			snprintf(name, sizeof(name), "%s", argv[1]);
-			char *ip = argv[2];
-			int port = atoi(argv[3]);
+	struct sockaddr_in server_addr;
 
-			signal(SIGINT, catch_ctrl_c_and_exit);
+	/* Socket settings */
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = inet_addr(ip);
+	server_addr.sin_port = htons(port);
 
-			struct sockaddr_in server_addr;
-
-			/* Socket settings */
-			sockfd = socket(AF_INET, SOCK_STREAM, 0);
-			server_addr.sin_family = AF_INET;
-			server_addr.sin_addr.s_addr = inet_addr(ip);
-			server_addr.sin_port = htons(port);
-
-			// Connect to Server
-			int err = connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-			if (err == -1) {
-				printf("ERROR: connect\n");
-				return EXIT_FAILURE;
-			}
-
-			// Send name
-			send(sockfd, name, 32, 0);
-
-			printf("=== Bienvenidos al Chat General ===\n");
-
-			pthread_t send_msg_thread;
-			if(pthread_create(&send_msg_thread, NULL, send_msg_handler, NULL) != 0){
-        		printf("ERROR: pthread\n");
-				return EXIT_FAILURE;
-    		}
-
-			pthread_t recv_msg_thread;
-			if(pthread_create(&recv_msg_thread, NULL, recv_msg_handler, NULL) != 0){
-				printf("ERROR: pthread\n");
-				return EXIT_FAILURE;
-			}	
-			
-			while (1){
-				if(flag){
-					printf("\nChat cerrado\n");
-					break;
-				}
-			}
-
-			close(sockfd);
-		} else if(option == 2) {
-			printf("Cambiar de status\n");	 
-		} else if(option == 3) {
-			
-		} else if(option == 4) {
-			printf("Funciona");
-		} else if(option == 5) {
-			printf("Ayuda del sistema.");
-		} else if(option == 6) {
-			printf("\nGracias por usar nuestro chat.\n");
-			//exit(0);
-		}
-
+	// Connect to Server
+	int err = connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+	if (err == -1) {
+		printf("ERROR: connect\n");
+		return EXIT_FAILURE;
 	}
 
+	// Send name
+	send(sockfd, name, 32, 0);
+
+	pthread_t send_msg_thread;
+	if(pthread_create(&send_msg_thread, NULL, send_msg_handler, NULL) != 0){
+		printf("ERROR: pthread\n");
+		return EXIT_FAILURE;
+	}
+
+	pthread_t recv_msg_thread;
+	if(pthread_create(&recv_msg_thread, NULL, recv_msg_handler, NULL) != 0){
+		printf("ERROR: pthread\n");
+		return EXIT_FAILURE;
+	}	
+	
+	while (1){
+		if(flag){
+			printf("\nChat cerrado\n");
+			break;
+		}
+	}
+
+	close(sockfd);
 	return EXIT_SUCCESS;
 }

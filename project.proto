@@ -17,7 +17,7 @@ package chat;
 
 // message_type es un booleano que indicara si el mensaje es privado o al chal general
 // Siendo False privado y True Chat General (Broadcasting) por esa razón  recipient es opcional
-// pues el Chat general no requiere dstinatario 
+// pues el Chat general no requiere destinatario 
 
 message newMessage {
     bool message_type = 1;
