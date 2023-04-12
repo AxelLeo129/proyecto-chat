@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <string>
+#include <sstream>
 #include "project.pb.h"
 
 #define LENGTH 2048
@@ -84,7 +85,6 @@ void* send_msg_handler(void* arg){
 		if(option == 1) {
 			printf("=== Bienvenidos al Chat ===\n");
 			while(1) {
-
 				char message[LENGTH] = {};
 				char buffer[LENGTH + 32] = {};
 
@@ -133,7 +133,37 @@ void* send_msg_handler(void* arg){
 			}
 			catch_ctrl_c_and_exit(2);
 		} else if(option == 2) {
-			printf("Cambiar de status\n");	 
+			std::string message = "";
+			std::stringstream ss;
+			char buffer[256];
+
+			printf("=== Cambiar status ===\nIngrese el usuario seguido del nuevo status: ");
+			fgets(buffer, 256, stdin);
+			str_trim_lf(buffer, 256);
+			
+			message = buffer;
+			ss.str(message);
+			std::string nombre;
+			ss >> nombre;
+			int estado;
+			ss >> estado;
+
+			chat::UserRequest userRequest;
+			userRequest.set_option(3);
+			chat::ChangeStatus* changeStatus = userRequest.mutable_status();
+			changeStatus->set_username(nombre);
+			changeStatus->set_newstatus(estado);
+			// Imprimir el contenido de userRequest
+			//std::cout << "Contenido de userRequestCha: " << userRequest.DebugString() << std::endl;
+
+			std::string serialized_request;
+			userRequest.SerializeToString(&serialized_request);
+			// Preparar los datos para ser enviados
+			const char* data = serialized_request.c_str();
+			size_t data_len = serialized_request.length();
+
+			send(sockfd, data, data_len, 0);
+
 		} else if(option == 3) {
 			
 		} else if(option == 4) {
