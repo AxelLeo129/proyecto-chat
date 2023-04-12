@@ -93,6 +93,16 @@ void str_overwrite_stdout() {
     fflush(stdout);
 }
 
+
+void print_client_names() {
+    printf("Connected clients:\n");
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (clients[i] != NULL) {
+            printf("- %s\n", clients[i]->name);
+        }
+    }
+}
+
 void str_trim_lf (char* arr, int length) {
   int i;
   for (i = 0; i < length; i++) { // trim \n
@@ -177,6 +187,7 @@ void *handle_client(void *arg){
 		sprintf(buff_out, "%s se ha conectado\n", cli->name);
 		printf("%s", buff_out);
 		send_message(buff_out, cli->uid);
+		print_client_names();
 	}
 
 	bzero(buff_out, BUFFER_SZ);
@@ -217,16 +228,7 @@ void *handle_client(void *arg){
 	return NULL;
 }
 
-/**
-void print_clients(client_t *clients, int num_clients){
-	printf("Clientes conectados:");
-	for (int i = 0; i < num_clients; i++){
-		char address_str[INET_ADDRSTRLEN];
-		inet_ntop(AF_INET, &(clients[i].address.sin_addr), address_str, INET_ADDRSTRLEN);
-		printf("[%d] %s:%d\n", clients[i].uid, address_str, ntohs(clients[i].address.sin_port));
-	}
-}
-**/
+
 
 int main(int argc, char **argv){
 	if(argc != 2){
@@ -288,7 +290,8 @@ int main(int argc, char **argv){
 		cli->address = cli_addr;
 		cli->sockfd = connfd;
 		cli->uid = uid++;
-
+		
+		
 		/* Add client to the queue and fork thread */
 		queue_add(cli);
 		pthread_create(&tid, NULL, &handle_client, (void*)cli);
