@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <string>
+#include "project.pb.h"
 
 #define LENGTH 2048
 
@@ -72,7 +73,23 @@ void* send_msg_handler(void* arg){
 					break;
 				} else {
 					sprintf(buffer, "%s: %s\n", name, message);
-					send(sockfd, buffer, strlen(buffer), 0);
+					chat::UserRequest userRequest;
+					chat::newMessage newMessage1;
+
+					newMessage1.set_message_type(1);
+					newMessage1.set_sender(name);
+					newMessage1.set_message(message);
+					userRequest.set_option(4);
+					userRequest.set_allocated_message(newMessage1);
+
+					std::string serialized_request;
+					userRequest.SerializeToString(&serialized_request);
+
+					// Preparar los datos para ser enviados
+					const char* data = serialized_request.c_str();
+					size_t data_len = serialized_request.length();
+
+					send(sockfd, data, data_len, 0);
 				}
 
 				bzero(message, LENGTH);

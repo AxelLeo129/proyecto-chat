@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <atomic>
 #include <string>
+#include "project.pb.h"
 
 #define MAX_CLIENTS 5
 #define BUFFER_SZ 2048
@@ -25,66 +26,6 @@ typedef struct{
 	int uid;
 	char name[32];
 } client_t;
-
-/**	MESSAGE STRUCT **/
-
-typedef struct{
-	int message_type;
-	char sender[32];
-	char recipient[32];
-	char message[100];
-} newMessage;
-
-/**	USER STRUCTS **/
-
-typedef struct{
-	char username[32];
-	char ip[100];
-} UserRegister;
-
-typedef struct{
-	int type_request;
-	char user[100];
-} UserInfoRequest;
-
-typedef struct{
-	char username[32];
-	int newStatus;
-} ChangeStatus;
-
-/**	USER REQUEST **/
-
-typedef struct{
-	int option;
-	UserRegister newUser;
-	UserInfoRequest infoRequest;
-	ChangeStatus status;
-	newMessage message;
-} UserRequest;
-
-/**	SERVER STRUCTS **/
-
-typedef struct{
-	char username[32];
-	char ip[100];
-	int status;
-} UserInfo;
-
-typedef struct{
-	UserInfo connectedUsers;
-} AllConnectedUsers;
-
-
-/**	SERVER RESPONSE **/
-typedef struct{
-	int option;
-	int code;
-	char serverMesssage[32];
-	AllConnectedUsers connectedUsers;
-	newMessage message;
-	UserInfo userInfoResponse;
-	ChangeStatus change;
-} ServerResponse;
 
 client_t *clients[MAX_CLIENTS];
 
@@ -202,10 +143,19 @@ void *handle_client(void *arg){
 		int receive = recv(cli->sockfd, buff_out, BUFFER_SZ, 0);
 		if (receive > 0){
 			if(strlen(buff_out) > 0){
-				send_message(buff_out, cli->uid);
+				std::string received_data(buff_out, receive);
+				chat::UserRequest received_request;
+				received_request.ParseFromString(received_data);
+				
+				chat::newMessage received_message = received_request.message();
+				std::string received_sender = received_message.sender();
+				std::string received_message_text = received_message.message();
 
-				str_trim_lf(buff_out, strlen(buff_out));
-				printf("%s -> %s\n", buff_out, cli->name);
+				std::string message1(received_message_text);
+				send_message((char*)message1.c_str(), cli->uid);
+
+				str_trim_lf((char*)message1.c_str(), strlen(message1.c_str()));
+				printf("%s -> %s\n", message1.c_str(), cli->name);
 			}
 		} else if (receive == 0 || strcmp(buff_out, "exit") == 0){
 			sprintf(buff_out, "%s se ha desconectado\n", cli->name);
