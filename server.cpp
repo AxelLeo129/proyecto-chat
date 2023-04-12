@@ -48,6 +48,7 @@ void print_client_names()
 		if (clients[i] != NULL)
 		{
 			printf("- %s\n", clients[i]->name);
+			printf("- %d\n", clients[i]->status);
 		}
 	}
 }
@@ -178,18 +179,33 @@ void *handle_client(void *arg)
 				std::string received_data(buff_out, receive);
 				chat::UserRequest received_request;
 				received_request.ParseFromString(received_data);
+				//std::cout << "Contenido de received_request: " << received_request.DebugString() << std::endl;
 				
-				chat::newMessage received_message = received_request.message();
-				std::string received_sender = received_message.sender();
-				std::string received_message_text = received_message.message();
-				std::string result = received_sender + ": " + received_message_text + "\n";
+				if(received_request.option() == 4) {
+					chat::newMessage received_message = received_request.message();
+					std::string received_sender = received_message.sender();
+					std::string received_message_text = received_message.message();
+					std::string result = received_sender + ": " + received_message_text + "\n";
 
-				std::string message1(received_message_text);
-				//send_message((char*)message1.c_str(), cli->uid);
-				send_message(const_cast<char*>(result.c_str()), cli->uid);
+					std::string message1(received_message_text);
+					//send_message((char*)message1.c_str(), cli->uid);
+					send_message(const_cast<char*>(result.c_str()), cli->uid);
 
-				str_trim_lf((char*)message1.c_str(), strlen(message1.c_str()));
-				printf("%s -> %s\n", message1.c_str(), cli->name);
+					str_trim_lf((char*)message1.c_str(), strlen(message1.c_str()));
+					printf("%s -> %s\n", message1.c_str(), cli->name);
+				} else if(received_request.option() == 3) {
+					printf("Cambio de estado.\n");
+					chat::ChangeStatus received_status = received_request.status();
+					std::string received_username = received_status.username();
+					int received_estado = received_status.newstatus();
+					for(int i = 0; i < MAX_CLIENTS; i++) {
+						if(clients[i] != NULL && strcmp(clients[i]->name, received_username.c_str()) == 0) {
+							clients[i]->status = received_estado;
+							break;
+						}
+					}
+					print_client_names();
+				}
 			}
 		}
 		else if (receive == 0 || strcmp(buff_out, "exit") == 0)
