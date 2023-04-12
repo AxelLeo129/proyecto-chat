@@ -93,6 +93,7 @@ void str_overwrite_stdout() {
     fflush(stdout);
 }
 
+
 void print_client_names() {
     printf("Connected clients:\n");
     for (int i = 0; i < MAX_CLIENTS; i++) {
