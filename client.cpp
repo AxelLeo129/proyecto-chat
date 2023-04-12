@@ -146,7 +146,7 @@ void* send_msg_handler(void* arg){
 			}
 			//catch_ctrl_c_and_exit(2);
 		} else if(option == 2) {
-			std::string message = "";
+			int message;
 			std::stringstream ss;
 			char buffer[256];
 
@@ -154,18 +154,13 @@ void* send_msg_handler(void* arg){
 			fgets(buffer, 256, stdin);
 			str_trim_lf(buffer, 256);
 			
-			message = buffer;
-			ss.str(message);
-			std::string nombre;
-			ss >> nombre;
-			int estado;
-			ss >> estado;
+			message = atoi(buffer);
 
 			chat::UserRequest userRequest;
 			userRequest.set_option(3);
 			chat::ChangeStatus* changeStatus = userRequest.mutable_status();
-			changeStatus->set_username(nombre);
-			changeStatus->set_newstatus(estado);
+			changeStatus->set_username(name);
+			changeStatus->set_newstatus(message);
 			// Imprimir el contenido de userRequest
 			//std::cout << "Contenido de userRequestCha: " << userRequest.DebugString() << std::endl;
 
@@ -223,6 +218,7 @@ void* send_msg_handler(void* arg){
 			printf("Ayuda del sistema.");
 		} else if(option == 6) {
 			printf("\nGracias por usar nuestro chat.\n");
+			catch_ctrl_c_and_exit(2);
 			//exit(0);
 		}
 	}
@@ -233,8 +229,29 @@ void* recv_msg_handler(void* arg){
 	while (1) {
 		int receive = recv(sockfd, message, LENGTH, 0);
 		if (receive > 0) {
-			printf("%s", message);
-			str_overwrite_stdout();
+			std::string received_data(message, receive);
+			chat::ServerResponse received_server;
+			received_server.ParseFromString(received_data);
+			std::cout << "Contenido de userRequestGet: " << received_server.DebugString() << std::endl;
+			if(received_server.option() == 4) {
+				chat::newMessage received_message = received_server.message();
+				std::string received_sender = received_message.sender();
+				std::string received_message_text = received_message.message();
+				std::string received_recipient = received_message.recipient();
+
+				//printf(received_sender + ": " + received_message_text + "\n");
+				if(received_message.message_type() == 1) {
+					std::cout << received_sender << ": " << received_message_text << "\n";
+				} else {
+					std::cout << "[DM]" << received_sender << ": " << received_message_text << "\n";
+				}
+				
+				str_overwrite_stdout();
+			} else if(received_server.option() == 3) { 
+				std::string mesaggio = received_server.servermessage();
+				std::cout << mesaggio << "\n";
+			}
+			
 		} else if (receive == 0) {
 			break;
 		} else {
