@@ -121,7 +121,7 @@ void send_message(char *s, int uid)
 	{
 		if (clients[i])
 		{
-			if (clients[i]->uid != uid)
+			if (clients[i]->uid != uid && clients[i]->status == 1)
 			{
 				if (write(clients[i]->sockfd, s, strlen(s)) < 0)
 				{
@@ -144,8 +144,8 @@ void send_direct_message(char *s, std::string rec)
 	{
 		if (clients[i])
 		{
-			if (rec.compare(clients[i]->name) == 0) 
-    // Los strings son iguales
+			if (rec.compare(clients[i]->name) == 0 && clients[i]->status == 1) 
+    		// Los strings son iguales
 			{
 				if (write(clients[i]->sockfd, s, strlen(s)) < 0)
 				{
@@ -156,6 +156,28 @@ void send_direct_message(char *s, std::string rec)
 		}
 	}
 
+	pthread_mutex_unlock(&clients_mutex);
+}
+
+void send_from(char *s, int uid)
+{
+	pthread_mutex_lock(&clients_mutex);
+	std::string prueba = "prueba";
+
+	for (int i = 0; i < MAX_CLIENTS; ++i)
+	{
+		if (clients[i])
+		{
+			if (clients[i]->uid == uid && clients[i]->status == 2) {
+				if (write(clients[i]->sockfd, prueba.c_str(), strlen(prueba.c_str())) < 0)
+				{
+					perror("ERROR: write to descriptor failed");
+					break;
+				}
+			}
+		}
+	}
+	
 	pthread_mutex_unlock(&clients_mutex);
 }
 
@@ -180,7 +202,7 @@ void *handle_client(void *arg)
 
 	strcpy(cli->name, received_username.c_str());
 	strcpy(cli->ip, received_ip.c_str());
-	cli->status = 1;
+	cli->status = 2;
 	sprintf(buff_out, "%s se ha conectado\n", cli->name);
 	printf("%s", buff_out);
 	send_message(buff_out, cli->uid);
@@ -197,7 +219,7 @@ void *handle_client(void *arg)
 
 		int receive = recv(cli->sockfd, buff_out, BUFFER_SZ, 0);
 		if (receive > 0){
-			if(strlen(buff_out) > 0){
+			if(strlen(buff_out) > 0) {
 				std::string received_data(buff_out, receive);
 				chat::UserRequest received_request;
 				received_request.ParseFromString(received_data);
@@ -208,6 +230,13 @@ void *handle_client(void *arg)
 					std::string received_sender = received_message.sender();
 					std::string received_message_text = received_message.message();
 					std::string received_recipient = received_message.recipient();
+
+					for(int i = 0; i < MAX_CLIENTS; i++) {
+						if(clients[i] != NULL && strcmp(clients[i]->name, received_sender.c_str()) == 0) {
+							clients[i]->status = 1;
+							break;
+						}
+					}
 
 					if (received_recipient.empty()) {
 						std::string result = received_sender + ": " + received_message_text + "\n";
@@ -234,12 +263,14 @@ void *handle_client(void *arg)
 						}
 					}
 					print_client_names();
+					send_from("prueba", cli->uid);
 				} else if(received_request.option() == 2) {
 					chat::UserInfoRequest received_userInfo = received_request.inforequest();
 					int received_type_request = received_userInfo.type_request();
 					if(received_type_request == 1) {
 						printf("Listado de usuarios.\n");
 						print_client_names();
+						send_from("prueba", cli->uid);
 					} else {
 						printf("Usuario en específico.\n");
 						std::string received_user = received_userInfo.user();
@@ -250,12 +281,19 @@ void *handle_client(void *arg)
 								break;
 							}
 						}
+						send_from("prueba", cli->uid);
 					}
 				}
 			}
 		}
 		else if (receive == 0 || strcmp(buff_out, "exit") == 0)
 		{
+			for(int i = 0; i < MAX_CLIENTS; i++) {
+				if(clients[i] != NULL && strcmp(clients[i]->name, cli->name) == 0) {
+					clients[i]->status = 2;
+					break;
+				}
+			}
 			sprintf(buff_out, "%s se ha desconectado\n", cli->name);
 			printf("%s", buff_out);
 			send_message(buff_out, cli->uid);

@@ -93,6 +93,19 @@ void* send_msg_handler(void* arg){
 				str_trim_lf(message, LENGTH);
 
 				if (strcmp(message, "exit") == 0) {
+					chat::UserRequest userRequest;
+					userRequest.set_option(3);
+					chat::ChangeStatus* changeStatus = userRequest.mutable_status();
+					changeStatus->set_username(name);
+					changeStatus->set_newstatus(2);
+
+					std::string serialized_request;
+					userRequest.SerializeToString(&serialized_request);
+					// Preparar los datos para ser enviados
+					const char* data = serialized_request.c_str();
+					size_t data_len = serialized_request.length();
+
+					send(sockfd, data, data_len, 0);
 					break;
 				} else {
 					sprintf(buffer, "%s: %s\n", name, message);
@@ -131,7 +144,7 @@ void* send_msg_handler(void* arg){
 				bzero(message, LENGTH);
 				bzero(buffer, LENGTH + 32);
 			}
-			catch_ctrl_c_and_exit(2);
+			//catch_ctrl_c_and_exit(2);
 		} else if(option == 2) {
 			std::string message = "";
 			std::stringstream ss;
