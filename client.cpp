@@ -218,7 +218,7 @@ void* send_msg_handler(void* arg){
 			printf("Ayuda del sistema.");
 		} else if(option == 6) {
 			printf("\nGracias por usar nuestro chat.\n");
-			catch_ctrl_c_and_exit(2);
+			//catch_ctrl_c_and_exit(2);
 			//exit(0);
 		}
 	}
