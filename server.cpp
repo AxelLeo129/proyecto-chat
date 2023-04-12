@@ -9,11 +9,13 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <atomic>
+#include <string>
 
 #define MAX_CLIENTS 5
 #define BUFFER_SZ 2048
 
-static _Atomic unsigned int cli_count = 0;
+static std::atomic<unsigned int> cli_count(0);
 static int uid = 10;
 
 /* Client structure */
@@ -236,7 +238,7 @@ int main(int argc, char **argv){
 		return EXIT_FAILURE;
 	}
 
-	char *ip = "127.0.0.1";
+	std::string ip = "127.0.0.1";
 	int port = atoi(argv[1]);
 	int option = 1;
 	int listenfd = 0, connfd = 0;
@@ -247,7 +249,7 @@ int main(int argc, char **argv){
 	/* Socket settings */
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = inet_addr(ip);
+	serv_addr.sin_addr.s_addr = inet_addr(ip.c_str());
 	serv_addr.sin_port = htons(port);
 
 	/* Ignore pipe signals */

@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <string>
 
 #define LENGTH 2048
 
@@ -35,7 +36,7 @@ void catch_ctrl_c_and_exit(int sig) {
     flag = 1;
 }
 
-void send_msg_handler() {
+void* send_msg_handler(void* arg){
 	char message[LENGTH] = {};
 	char buffer[LENGTH + 32] = {};
 
@@ -57,7 +58,7 @@ void send_msg_handler() {
 	catch_ctrl_c_and_exit(2);
 }
 
-void recv_msg_handler() {
+void* recv_msg_handler(void* arg){
 	char message[LENGTH] = {};
 	while (1) {
 		int receive = recv(sockfd, message, LENGTH, 0);
@@ -126,17 +127,17 @@ int main(int argc, char **argv){
 			printf("=== Bienvenidos al Chat General ===\n");
 
 			pthread_t send_msg_thread;
-			if(pthread_create(&send_msg_thread, NULL, (void *) send_msg_handler, NULL) != 0){
-				printf("ERROR: pthread\n");
+			if(pthread_create(&send_msg_thread, NULL, send_msg_handler, NULL) != 0){
+        		printf("ERROR: pthread\n");
 				return EXIT_FAILURE;
-			}
+    		}
 
 			pthread_t recv_msg_thread;
-			if(pthread_create(&recv_msg_thread, NULL, (void *) recv_msg_handler, NULL) != 0){
+			if(pthread_create(&recv_msg_thread, NULL, recv_msg_handler, NULL) != 0){
 				printf("ERROR: pthread\n");
 				return EXIT_FAILURE;
-			}
-
+			}	
+			
 			while (1){
 				if(flag){
 					printf("\nChat cerrado\n");

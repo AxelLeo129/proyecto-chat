@@ -22,7 +22,7 @@ package chat;
 message newMessage {
     bool message_type = 1;
     string sender = 2;
-    string recipient = 3;
+    optional string recipient = 3;
     string message = 4;
 }
 
@@ -42,7 +42,7 @@ message UserRegister {
 
 message UserInfoRequest {
     bool type_request = 1;
-    string user = 2;
+    optional string user = 2;
 }
 
 
@@ -72,10 +72,10 @@ message ChangeStatus {
 
 message UserRequest {
     int32 option = 1;
-    UserRegister newUser = 2;
-    UserInfoRequest infoRequest = 3;
-    ChangeStatus status = 4;
-    newMessage message = 5;
+    optional UserRegister newUser = 2;
+    optional UserInfoRequest infoRequest = 3;
+    optional ChangeStatus status = 4;
+    optional newMessage message = 5;
 }
 
 
@@ -88,9 +88,9 @@ message UserRequest {
 // 2. Obtencion de informacion de usuario
 
 message UserInfo {
-    string username = 1;
-    string ip = 2;
-    int32 status = 3;
+    optional string username = 1;
+    optional string ip = 2;
+    optional int32 status = 3;
 }
 
 
@@ -100,22 +100,22 @@ message AllConnectedUsers {
 
 // ---------------- SERVER RESPONSE ----------------
 
-// Para los campos el server contesta: En el campo option la opcion que hizo,
+// Para los campos required el server contesta: En el campo option la opcion que hizo,
 // en el campo code el codigo resultante de hacer la accion.
 // Las opciones son las mismas indicadas en el campo option de USER REQUEST.
 // Es posible que se genere un codigo 200, si se proceso adecuadamente la instruccion
 // o 400 si hubo un error.
 // Mensaje complementario al codigo que retorno el server.
 //-----------------------------------------------------------
-// Para los campos el servidor contesta al cliente 
+// Para los campos optional el servidor contesta al cliente 
 // Segun su solicitud que haya hecho
 
 message ServerResponse {
     int32 option = 1;
     int32 code = 2;
     string serverMessage = 3;
-    AllConnectedUsers connectedUsers = 4;
-    newMessage message = 5;
-    UserInfo userInfoResponse = 6;
-    ChangeStatus change = 7;
+    optional AllConnectedUsers connectedUsers = 4;
+    optional newMessage message = 5;
+    optional UserInfo userInfoResponse = 6;
+    optional ChangeStatus change = 7;
 }

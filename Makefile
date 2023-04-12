@@ -1,6 +1,6 @@
 compile:
-	gcc -Wall -g3 -fsanitize=address -pthread server.c -o server
-	gcc -Wall -g3 -fsanitize=address -pthread client.c -o client
+	g++ -Wall -g3 -fsanitize=address -pthread -std=c++11 server.cpp -o server
+	g++ -Wall -g3 -fsanitize=address -pthread -std=c++11 client.cpp -o client
 FLAGS    = -L /lib64
 LIBS     = -lusb-1.0 -l pthread
 
