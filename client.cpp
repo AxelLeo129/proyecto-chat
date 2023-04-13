@@ -150,7 +150,7 @@ void* send_msg_handler(void* arg){
 			std::stringstream ss;
 			char buffer[256];
 
-			printf("=== Cambiar status ===\nIngrese el usuario seguido del nuevo status: ");
+			printf("=== Cambiar status ===\nIngrese el nuevo status: ");
 			fgets(buffer, 256, stdin);
 			str_trim_lf(buffer, 256);
 			
@@ -205,7 +205,7 @@ void* send_msg_handler(void* arg){
 			userInfoRequest->set_type_request(0);
 			userInfoRequest->set_user(message);
 			// Imprimir el contenido de userRequest
-			std::cout << "Contenido de userRequestGet: " << userRequest.DebugString() << std::endl;
+			//std::cout << "Contenido de userRequestGet: " << userRequest.DebugString() << std::endl;
 
 			std::string serialized_request;
 			userRequest.SerializeToString(&serialized_request);
@@ -225,14 +225,15 @@ void* send_msg_handler(void* arg){
 }
 
 void* recv_msg_handler(void* arg){
-	char message[LENGTH] = {};
+	char message[LENGTH + 32] = {};
 	while (1) {
-		int receive = recv(sockfd, message, LENGTH, 0);
+		int receive = recv(sockfd, message, LENGTH + 32, 0);
+		//printf("receive: %d", receive);
 		if (receive > 0) {
 			std::string received_data(message, receive);
 			chat::ServerResponse received_server;
 			received_server.ParseFromString(received_data);
-			std::cout << "Contenido de userRequestGet: " << received_server.DebugString() << std::endl;
+			//std::cout << "Contenido de userRequestGet: " << received_server.DebugString() << std::endl;
 			if(received_server.option() == 4) {
 				chat::newMessage received_message = received_server.message();
 				std::string received_sender = received_message.sender();

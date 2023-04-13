@@ -132,7 +132,7 @@ void send_message(char *s, int uid, char *name)
 				newMessage1->set_sender(name);
 				newMessage1->set_message(s);
 				// Imprimir el contenido de userRequest
-				std::cout << "Contenido de userRequestGet: " << serverResponse.DebugString() << std::endl;
+				//std::cout << "Contenido de userRequestGet: " << serverResponse.DebugString() << std::endl;
 
 				std::string serialized_request;
 				serverResponse.SerializeToString(&serialized_request);
@@ -167,12 +167,12 @@ void send_direct_message(char *s, std::string rec, char *name)
 				serverResponse.set_code(200);
 				serverResponse.set_servermessage("Todo bien");
 				chat::newMessage* newMessage1 = serverResponse.mutable_message();
-				newMessage1->set_message_type(2);
+				newMessage1->set_message_type(0);
 				newMessage1->set_sender(name);
 				newMessage1->set_message(s);
 				newMessage1->set_recipient(rec);
 				// Imprimir el contenido de userRequest
-				std::cout << "Contenido de userRequestGet DM: " << serverResponse.DebugString() << std::endl;
+				//std::cout << "Contenido de userRequestGet DM: " << serverResponse.DebugString() << std::endl;
 
 				std::string serialized_request;
 				serverResponse.SerializeToString(&serialized_request);
@@ -294,11 +294,10 @@ void *handle_client(void *arg)
 							break;
 						}
 					}
-					printf("Here");
 					pthread_mutex_lock(&clients_mutex);
 					for (int i = 0; i < MAX_CLIENTS; ++i)
 					{
-						printf("UID: %d", clients[i]->uid);
+						//printf("UID: %d", clients[i]->uid);
 						if (clients[i] != NULL)
 						{
 							if (clients[i]->uid == uid && clients[i]->status == 2) {
@@ -310,7 +309,7 @@ void *handle_client(void *arg)
 								changeStatus->set_username(received_username);
 								changeStatus->set_newstatus(received_estado);
 								// Imprimir el contenido de userRequest
-								std::cout << "Contenido de userRequestGet: " << serverResponse.DebugString() << std::endl;
+								//std::cout << "Contenido de userRequestGet: " << serverResponse.DebugString() << std::endl;
 
 								std::string serialized_request;
 								serverResponse.SerializeToString(&serialized_request);
@@ -334,37 +333,42 @@ void *handle_client(void *arg)
 					if(received_type_request == 1) {
 						printf("Listado de usuarios.\n");
 						print_client_names();
-						/*chat::ServerResponse serverResponse;
+						chat::ServerResponse serverResponse;
 						serverResponse.set_option(2);
 						serverResponse.set_code(200);
 						serverResponse.set_servermessage("Todo bien");
-						chat::AllConnectedUsers* allUsers = serverResponse.mutable_connectedUsers();
+						chat::AllConnectedUsers* allUsers = serverResponse.mutable_connectedusers();
 
 						for (int i = 0; i < MAX_CLIENTS; i++)
 						{
 							if (clients[i] != NULL)
 							{
-								UserInfo userInfo;
-								user1.set_username(clients[i]->name);
-    							user1.set_ip(clients[i]->ip);
-    							user1.set_status(clients[i]->status);
-								allUsers.add_connectedusers()->CopyFrom(userInfo);
+								chat::UserInfo userInfo;
+								userInfo.set_username(clients[i]->name);
+    							userInfo.set_ip(clients[i]->ip);
+    							userInfo.set_status(clients[i]->status);
+								allUsers->add_connectedusers()->CopyFrom(userInfo);
 							}
 						}
 						
 						// Imprimir el contenido de userRequest
-						std::cout << "Contenido de userRequestGet: " << serverResponse.DebugString() << std::endl;
+						//std::cout << "Contenido de userRequestGet: " << serverResponse.DebugString() << std::endl;
 
 						std::string serialized_request;
 						serverResponse.SerializeToString(&serialized_request);
 						// Preparar los datos para ser enviados
 						const char* data = serialized_request.c_str();
 						size_t data_len = serialized_request.length();
-						if (write(clients[i]->sockfd, data, data_len) < 0)
-						{
-							perror("ERROR: write to descriptor failed");
-							break;
-						}*/
+						//for(int i = 0; i < MAX_CLIENTS; i++) {
+							//if(clients[i] != NULL && strcmp(clients[i]->name)) {
+								if (write(clients[0]->sockfd, data, data_len) < 0)
+								{	
+									perror("ERROR: write to descriptor failed");
+									break;
+								}
+							//}
+						//}
+						
 					} else {
 						printf("Usuario en específico.\n");
 						std::string received_user = received_userInfo.user();
